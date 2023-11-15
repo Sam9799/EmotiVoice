@@ -68,9 +68,7 @@ def g2p_en(text):
 def scan_checkpoint(cp_dir, prefix, c=8):
     pattern = os.path.join(cp_dir, prefix + '?'*c)
     cp_list = glob.glob(pattern)
-    if len(cp_list) == 0:
-        return None
-    return sorted(cp_list)[-1]
+    return None if not cp_list else sorted(cp_list)[-1]
 
 def contains_chinese(text):
     pattern = re.compile(r'[\u4e00-\u9fa5]')
@@ -86,16 +84,13 @@ def get_models():
 
     with open(config.model_config_path, 'r') as fin:
         conf = CONFIG.load_cfg(fin)
-    
+
     conf.n_vocab = config.n_symbols
     conf.n_speaker = config.speaker_n_labels
 
     style_encoder = StyleEncoder(config)
     model_CKPT = torch.load(style_encoder_checkpoint_path, map_location="cpu")
-    model_ckpt = {}
-    for key, value in model_CKPT['model'].items():
-        new_key = key[7:]
-        model_ckpt[new_key] = value
+    model_ckpt = {key[7:]: value for key, value in model_CKPT['model'].items()}
     style_encoder.load_state_dict(model_ckpt)
     generator = JETSGenerator(conf).to(DEVICE)
 
@@ -125,8 +120,7 @@ def get_style_embedding(prompt, tokenizer, style_encoder):
         token_type_ids=token_type_ids,
         attention_mask=attention_mask,
     )
-    style_embedding = output["pooled_output"].cpu().squeeze().numpy()
-    return style_embedding
+    return output["pooled_output"].cpu().squeeze().numpy()
 
 def tts(name, text, prompt, content, speaker, models):
     (style_encoder, generator, tokenizer, token2id, speaker2id)=models
@@ -175,15 +169,14 @@ def new_line(i):
         prompt=st.text_input("提示/ prompt", "无", key=f"{i}_prompt")
     with col3:
         content=st.text_input("文本/text", "合成文本", key=f"{i}_text")
-    
+
     with col4:
         lang=st.selectbox("语言/lang", ["ch", "us"], key=f"{i}_lang")
-    
 
-    
 
-    flag = st.button(f"合成 / synthesize", key=f"{i}_button1")
-    if flag:
+
+
+    if flag := st.button("合成 / synthesize", key=f"{i}_button1"):
         if lang=="us":
             if contains_chinese(content):
                 st.info("文本含有中文/input texts contain chinese")
@@ -191,13 +184,13 @@ def new_line(i):
                 text = g2p_en(content)
                 path = tts(i, text, prompt, content, speaker, models)
                 st.audio(path, sample_rate=config.sampling_rate)
+        elif contains_chinese(content):            
+            text = g2p_cn(content)
+            path = tts(i, text, prompt, content, speaker, models)
+            st.audio(path, sample_rate=config.sampling_rate)
+
         else:
-            if not contains_chinese(content):
-                st.info("文本含有英文/input texts contain english")
-            else:            
-                text = g2p_cn(content)
-                path = tts(i, text, prompt, content, speaker, models)
-                st.audio(path, sample_rate=config.sampling_rate)
+            st.info("文本含有英文/input texts contain english")
 
 
 

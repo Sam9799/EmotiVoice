@@ -20,7 +20,9 @@ class LearnedDownSample(nn.Module):
         elif self.layer_type == 'half':
             self.conv = spectral_norm(nn.Conv2d(dim_in, dim_in, kernel_size=(3, 3), stride=(2, 2), groups=dim_in, padding=1))
         else:
-            raise RuntimeError('Got unexpected donwsampletype %s, expected is [none, timepreserve, half]' % self.layer_type)
+            raise RuntimeError(
+                f'Got unexpected donwsampletype {self.layer_type}, expected is [none, timepreserve, half]'
+            )
             
     def forward(self, x):
         return self.conv(x)
@@ -29,7 +31,7 @@ class LearnedUpSample(nn.Module):
     def __init__(self, layer_type, dim_in):
         super().__init__()
         self.layer_type = layer_type
-        
+
         if self.layer_type == 'none':
             self.conv = nn.Identity()
         elif self.layer_type == 'timepreserve':
@@ -37,7 +39,9 @@ class LearnedUpSample(nn.Module):
         elif self.layer_type == 'half':
             self.conv = nn.ConvTranspose2d(dim_in, dim_in, kernel_size=(3, 3), stride=(2, 2), groups=dim_in, output_padding=1, padding=1)
         else:
-            raise RuntimeError('Got unexpected upsampletype %s, expected is [none, timepreserve, half]' % self.layer_type)
+            raise RuntimeError(
+                f'Got unexpected upsampletype {self.layer_type}, expected is [none, timepreserve, half]'
+            )
 
 
     def forward(self, x):
@@ -58,7 +62,9 @@ class DownSample(nn.Module):
                 x = torch.cat([x, x[..., -1].unsqueeze(-1)], dim=-1)
             return F.avg_pool2d(x, 2)
         else:
-            raise RuntimeError('Got unexpected donwsampletype %s, expected is [none, timepreserve, half]' % self.layer_type)
+            raise RuntimeError(
+                f'Got unexpected donwsampletype {self.layer_type}, expected is [none, timepreserve, half]'
+            )
 
 
 class UpSample(nn.Module):
@@ -74,7 +80,9 @@ class UpSample(nn.Module):
         elif self.layer_type == 'half':
             return F.interpolate(x, scale_factor=2, mode='nearest')
         else:
-            raise RuntimeError('Got unexpected upsampletype %s, expected is [none, timepreserve, half]' % self.layer_type)
+            raise RuntimeError(
+                f'Got unexpected upsampletype {self.layer_type}, expected is [none, timepreserve, half]'
+            )
 
 
 class ResBlk(nn.Module):
@@ -143,9 +151,7 @@ class StyleEncoder(nn.Module):
     def forward(self, x):
         h = self.shared(x)
         h = h.view(h.size(0), -1)
-        s = self.unshared(h)
-    
-        return s
+        return self.unshared(h)
 
 
 class CosineSimilarityLoss(nn.Module):
@@ -157,6 +163,5 @@ class CosineSimilarityLoss(nn.Module):
     def forward(self, output1, output2):
         B = output1.size(0)
         target = torch.ones(B, device=output1.device, requires_grad=False)
-        loss = self.loss_fn(output1, output2, target)
-        return loss
+        return self.loss_fn(output1, output2, target)
 

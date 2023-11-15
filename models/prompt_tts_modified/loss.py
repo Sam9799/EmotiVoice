@@ -15,9 +15,7 @@ def get_mask_from_lengths(lengths, max_len=None):
     ids = (
         torch.arange(0, max_len).unsqueeze(0).expand(batch_size, -1).to(lengths.device)
     )
-    mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
-
-    return mask
+    return ids >= lengths.unsqueeze(1).expand(-1, max_len)
 
 class MelReconLoss(torch.nn.Module):
     def __init__(self, loss_type="mae"):
@@ -28,7 +26,7 @@ class MelReconLoss(torch.nn.Module):
         elif loss_type == "mse":
             self.criterion = torch.nn.MSELoss(reduction="none")
         else:
-            raise ValueError("Unknown loss type: {}".format(loss_type))
+            raise ValueError(f"Unknown loss type: {loss_type}")
 
     def forward(self, output_lengths, mel_targets, dec_outputs, postnet_outputs=None):
         """
@@ -105,7 +103,7 @@ class ProsodyReconLoss(torch.nn.Module):
         elif loss_type == "mse":
             self.criterion = torch.nn.MSELoss(reduction="none")
         else:
-            raise ValueError("Unknown loss type: {}".format(loss_type))
+            raise ValueError(f"Unknown loss type: {loss_type}")
 
     def forward(
         self,
@@ -167,12 +165,12 @@ class TTSLoss(torch.nn.Module):
         mel_targets = outputs["mel_targets"].transpose(1,2)
         log_p_attn = outputs["log_p_attn"]
         bin_loss = outputs["bin_loss"]
-        
+
         dec_mel_loss, postnet_mel_loss = self.Mel_Loss(output_lengths, mel_targets, dec_outputs, postnet_outputs)
         dur_loss, pitch_loss, energy_loss = self.Prosodu_Loss(input_lengths, duration_targets, pitch_targets, energy_targets, log_duration_predictions, pitch_predictions, energy_predictions)
         forwardsum_loss = self.ForwardSum_Loss(log_p_attn, input_lengths, output_lengths)
-        
-        res = {
+
+        return {
             "dec_mel_loss": dec_mel_loss,
             "postnet_mel_loss": postnet_mel_loss,
             "dur_loss": dur_loss,
@@ -181,5 +179,3 @@ class TTSLoss(torch.nn.Module):
             "forwardsum_loss": forwardsum_loss,
             "bin_loss": bin_loss,
         }
-        
-        return res

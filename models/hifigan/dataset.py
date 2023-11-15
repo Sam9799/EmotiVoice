@@ -27,7 +27,7 @@ def get_mel(filename, stft, sampling_rate, trim=False):
 
     sr, wav = read(filename)
     if sr != sampling_rate:
-        raise ValueError("{} SR doesn't match target {} SR".format(sr, sampling_rate))
+        raise ValueError(f"{sr} SR doesn't match target {sampling_rate} SR")
 
     wav = wav / 32768.0
 
@@ -101,7 +101,7 @@ class DatasetTTS(torch.utils.data.Dataset):
 
         # Right zero-pad melspectrogram
         mel = [x['mel'] for x in data]
-        max_target_len = max([x.shape[1] for x in mel])
+        max_target_len = max(x.shape[1] for x in mel)
 
         # wav
         wav = [x["wav"] for x in data]
@@ -110,14 +110,13 @@ class DatasetTTS(torch.utils.data.Dataset):
                                   batch_first=True,
                                   padding_value=0.0)
         padded_mel = pad_mel(mel, self.config.downsample_ratio, max_target_len)
-        
+
         mel_lens = torch.LongTensor([x.shape[1] for x in mel])  
-        
-        res = {
-            "mel"               :   padded_mel,
-            "mel_lens"          :   mel_lens,
-            "wav"               :   padded_wav,
+
+        return {
+            "mel": padded_mel,
+            "mel_lens": mel_lens,
+            "wav": padded_wav,
         }
-        return res
 
 

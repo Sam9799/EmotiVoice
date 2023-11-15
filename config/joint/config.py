@@ -1,22 +1,24 @@
 import os
 
+
+
 class Config:
     #### PATH ####
     ROOT_DIR            = os.path.dirname(os.path.abspath("__file__"))
-    DATA_DIR            = ROOT_DIR + "/data/youdao/"
-    train_data_path     = DATA_DIR + "train_am/datalist.jsonl"
-    valid_data_path     = DATA_DIR + "valid_am/datalist.jsonl"
-    output_directory    = ROOT_DIR + "/outputs"
-    speaker2id_path     = DATA_DIR + "text/speaker2"
-    emotion2id_path     = DATA_DIR + "text/emotion"
-    pitch2id_path       = DATA_DIR + "text/pitch"
-    energy2id_path      = DATA_DIR + "text/energy"
-    speed2id_path       = DATA_DIR + "text/speed"
+    DATA_DIR = f"{ROOT_DIR}/data/youdao/"
+    train_data_path = f"{DATA_DIR}train_am/datalist.jsonl"
+    valid_data_path = f"{DATA_DIR}valid_am/datalist.jsonl"
+    output_directory = f"{ROOT_DIR}/outputs"
+    speaker2id_path = f"{DATA_DIR}text/speaker2"
+    emotion2id_path = f"{DATA_DIR}text/emotion"
+    pitch2id_path = f"{DATA_DIR}text/pitch"
+    energy2id_path = f"{DATA_DIR}text/energy"
+    speed2id_path = f"{DATA_DIR}text/speed"
     bert_path           = 'WangZeJun/simbert-base-chinese'
-    token_list_path     = DATA_DIR + "text/tokenlist"
-    style_encoder_ckpt  = ROOT_DIR + "/outputs/style_encoder/ckpt/checkpoint_163431"
-    tmp_dir             = ROOT_DIR + "/tmp"
-    model_config_path   = ROOT_DIR + "/config/joint/config.yaml"
+    token_list_path = f"{DATA_DIR}text/tokenlist"
+    style_encoder_ckpt = f"{ROOT_DIR}/outputs/style_encoder/ckpt/checkpoint_163431"
+    tmp_dir = f"{ROOT_DIR}/tmp"
+    model_config_path = f"{ROOT_DIR}/config/joint/config.yaml"
 
     #### Model ####
     bert_hidden_size = 768

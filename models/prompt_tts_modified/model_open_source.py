@@ -169,8 +169,7 @@ class PromptTTS(nn.Module):
             .unsqueeze(0)
             .expand(batch_size, -1)
         )
-        mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
-        return mask
+        return ids >= lengths.unsqueeze(1).expand(-1, max_len)
     def average_utterance_prosody(
         self, u_prosody_pred: torch.Tensor, src_mask: torch.Tensor
     ) -> torch.Tensor:
@@ -198,9 +197,7 @@ class PromptTTS(nn.Module):
 
         ids = torch.arange(0, max_len, device=lengths.device).unsqueeze(0).expand(
             batch_size, -1)
-        mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
-
-        return mask
+        return ids >= lengths.unsqueeze(1).expand(-1, max_len)
 
 
     def make_non_pad_mask(self, length, max_len=None):

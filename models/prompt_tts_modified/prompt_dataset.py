@@ -30,7 +30,7 @@ def get_mel(filename, stft, sampling_rate, trim=False):
 
     sr, wav = read(filename)
     if sr != sampling_rate:
-        raise ValueError("{} SR doesn't match target {} SR".format(sr, sampling_rate))
+        raise ValueError(f"{sr} SR doesn't match target {sampling_rate} SR")
 
     wav = wav / 32768.0
 
@@ -184,7 +184,7 @@ class Dataset_PromptTTS(torch.utils.data.Dataset):
 
         # Right zero-pad melspectrogram
         mel = [x['mel'] for x in data]
-        max_target_len = max([x.shape[1] for x in mel])
+        max_target_len = max(x.shape[1] for x in mel)
 
         # style embedding
         style_embedding = [x["style_embedding"] for x in data]
@@ -195,7 +195,7 @@ class Dataset_PromptTTS(torch.utils.data.Dataset):
 
         # content embedding 
         content_embedding = [x["content_embedding"] for x in data]
-        
+
         padded_content_embedding = pad_sequence(content_embedding,
                                               batch_first=True,
                                               padding_value=0.0)
@@ -212,14 +212,14 @@ class Dataset_PromptTTS(torch.utils.data.Dataset):
         padded_energy = pad_sequence(energy,
                                      batch_first=True,
                                      padding_value=0.0)
-        
+
         # speaker
         speaker = torch.LongTensor([x['speaker'] for x in data])
 
         padded_mel = pad_mel(mel, self.config.downsample_ratio, max_target_len)
-        
+
         mel_lens = torch.LongTensor([x.shape[1] for x in mel])  
-        
+
         # wav
         wav = [x["wav"] for x in data]
 
@@ -227,19 +227,18 @@ class Dataset_PromptTTS(torch.utils.data.Dataset):
                                   batch_first=True,
                                   padding_value=0.0)
 
-        res = {
-            "phoneme_id"        :   phoneme_id,
-            "phoneme_lens"      :   phoneme_lens,
-            "mel"               :   padded_mel,
-            "mel_lens"          :   mel_lens,
-            "style_embedding"   :   padded_style_embedding,
-            "content_embedding" :   padded_content_embedding,
-            "pitch"             :   padded_pitch,
-            "energy"            :   padded_energy,
-            "speaker"           :   speaker,
-            "wav"               :   padded_wav,
+        return {
+            "phoneme_id": phoneme_id,
+            "phoneme_lens": phoneme_lens,
+            "mel": padded_mel,
+            "mel_lens": mel_lens,
+            "style_embedding": padded_style_embedding,
+            "content_embedding": padded_content_embedding,
+            "pitch": padded_pitch,
+            "energy": padded_energy,
+            "speaker": speaker,
+            "wav": padded_wav,
         }
-        return res
 
 
 
@@ -309,14 +308,12 @@ class Dataset_Prompt_Pretrain(torch.utils.data.Dataset):
         # speed 
         speed = torch.LongTensor([x['speed'] for x in data])
 
-        res = {
-            "input_ids"       :   input_ids,
-            "token_type_ids"  :   token_type_ids,
-            "attention_mask"  :   attention_mask,
-            "emotion"         :   emotion,
-            "pitch"           :   pitch,
-            "energy"          :   energy,
-            "speed"           :   speed,
+        return {
+            "input_ids": input_ids,
+            "token_type_ids": token_type_ids,
+            "attention_mask": attention_mask,
+            "emotion": emotion,
+            "pitch": pitch,
+            "energy": energy,
+            "speed": speed,
         }
-
-        return res
