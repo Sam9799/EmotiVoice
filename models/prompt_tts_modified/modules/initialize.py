@@ -20,7 +20,7 @@ def initialize(model: torch.nn.Module, init: str):
             elif init == "kaiming_normal":
                 torch.nn.init.kaiming_normal_(p.data, nonlinearity="relu")
             else:
-                raise ValueError("Unknown initialization: " + init)
+                raise ValueError(f"Unknown initialization: {init}")
     # bias init
     for p in model.parameters():
         if p.dim() == 1:

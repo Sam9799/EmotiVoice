@@ -2,6 +2,7 @@
 from https://github.com/keithito/tacotron 
 """
 
+
 """
 Defines the set of symbols used in text input to the model.
 
@@ -16,7 +17,7 @@ _letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 _silences = ["@sp", "@spn", "@sil"]
 
 # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
-_arpabet = ["@" + s for s in cmudict.valid_symbols]
+_arpabet = [f"@{s}" for s in cmudict.valid_symbols]
 
 
 # Export all symbols:

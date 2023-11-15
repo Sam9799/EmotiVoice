@@ -60,16 +60,14 @@ class StyleEncoder(nn.Module):
         emotion_outputs = self.emotion_clf(pooled_output)
         pred_style_embed = self.style_embed_proj(pooled_output)
 
-        res = {
-            "pooled_output":pooled_output,
-            "pitch_outputs":pitch_outputs,
-            "speed_outputs":speed_outputs,
-            "energy_outputs":energy_outputs,
-            "emotion_outputs":emotion_outputs,
+        return {
+            "pooled_output": pooled_output,
+            "pitch_outputs": pitch_outputs,
+            "speed_outputs": speed_outputs,
+            "energy_outputs": energy_outputs,
+            "emotion_outputs": emotion_outputs,
             # "pred_style_embed":pred_style_embed,
         }
-
-        return res
 
 
 

@@ -46,22 +46,24 @@ class LogMelFBank():
         self.mel_filter = self._create_mel_filter()
 
     def _create_mel_filter(self):
-        mel_filter = librosa.filters.mel(sr=self.sr,
-                                         n_fft=self.n_fft,
-                                         n_mels=self.n_mels,
-                                         fmin=self.fmin,
-                                         fmax=self.fmax)
-        return mel_filter
+        return librosa.filters.mel(
+            sr=self.sr,
+            n_fft=self.n_fft,
+            n_mels=self.n_mels,
+            fmin=self.fmin,
+            fmax=self.fmax,
+        )
 
     def _stft(self, wav):
-        D = librosa.core.stft(wav,
-                              n_fft=self.n_fft,
-                              hop_length=self.hop_length,
-                              win_length=self.win_length,
-                              window=self.window,
-                              center=self.center,
-                              pad_mode=self.pad_mode)
-        return D
+        return librosa.core.stft(
+            wav,
+            n_fft=self.n_fft,
+            hop_length=self.hop_length,
+            win_length=self.win_length,
+            window=self.window,
+            center=self.center,
+            pad_mode=self.pad_mode,
+        )
 
     def _spectrogram(self, wav):
         D = self._stft(wav)
@@ -69,8 +71,7 @@ class LogMelFBank():
 
     def _mel_spectrogram(self, wav):
         S = self._spectrogram(wav)
-        mel = np.dot(self.mel_filter, S)
-        return mel
+        return np.dot(self.mel_filter, S)
 
     def get_log_mel_fbank(self, wav):
         mel = self._mel_spectrogram(wav)
@@ -139,10 +140,7 @@ class Pitch():
             avg_arr = np.mean(arr, axis=0) if len(arr) != 0 else np.array(0)
             arr_list.append(avg_arr)
 
-        # shape : (T)
-        arr_list = np.array(arr_list)
-
-        return arr_list
+        return np.array(arr_list)
 
     def get_pitch(self,
                   wav,
@@ -176,24 +174,23 @@ class Energy():
         self.pad_mode = pad_mode
 
     def _stft(self, wav):
-        D = librosa.core.stft(wav,
-                              n_fft=self.n_fft,
-                              hop_length=self.hop_length,
-                              win_length=self.win_length,
-                              window=self.window,
-                              center=self.center,
-                              pad_mode=self.pad_mode)
-        return D
+        return librosa.core.stft(
+            wav,
+            n_fft=self.n_fft,
+            hop_length=self.hop_length,
+            win_length=self.win_length,
+            window=self.window,
+            center=self.center,
+            pad_mode=self.pad_mode,
+        )
 
     def _calculate_energy(self, input):
         input = input.astype(np.float32)
         input_stft = self._stft(input)
         input_power = np.abs(input_stft)**2
-        energy = np.sqrt(
-            np.clip(np.sum(input_power, axis=0),
-                    a_min=1.0e-10,
-                    a_max=float('inf')))
-        return energy
+        return np.sqrt(
+            np.clip(np.sum(input_power, axis=0), a_min=1.0e-10, a_max=float('inf'))
+        )
 
     def _average_by_duration(self, input: np.array, d: np.array) -> np.array:
         d_cumsum = np.pad(d.cumsum(0), (1, 0), 'constant')
@@ -202,9 +199,7 @@ class Energy():
             arr = input[start:end]
             avg_arr = np.mean(arr, axis=0) if len(arr) != 0 else np.array(0)
             arr_list.append(avg_arr)
-        # shape (T)
-        arr_list = np.array(arr_list)
-        return arr_list
+        return np.array(arr_list)
 
     def get_energy(self, wav, use_token_averaged_energy=True, duration=None):
         energy = self._calculate_energy(wav)
@@ -251,7 +246,7 @@ def griffin_lim(magnitudes, stft_fn, n_iters=30):
     angles = torch.autograd.Variable(torch.from_numpy(angles))
     signal = stft_fn.inverse(magnitudes, angles).squeeze(1)
 
-    for i in range(n_iters):
+    for _ in range(n_iters):
         _, angles = stft_fn.transform(signal)
         signal = stft_fn.inverse(magnitudes, angles).squeeze(1)
     return signal
@@ -369,14 +364,11 @@ class STFT(torch.nn.Module):
             inverse_transform *= float(self.filter_length) / self.hop_length
 
         inverse_transform = inverse_transform[:, :, int(self.filter_length/2):]
-        inverse_transform = inverse_transform[:, :, :-int(self.filter_length/2):]
-
-        return inverse_transform
+        return inverse_transform[:, :, :-int(self.filter_length/2):]
 
     def forward(self, input_data):
         self.magnitude, self.phase = self.transform(input_data)
-        reconstruction = self.inverse(self.magnitude, self.phase)
-        return reconstruction
+        return self.inverse(self.magnitude, self.phase)
 
 class TacotronSTFT(torch.nn.Module):
     def __init__(self, filter_length=1024, hop_length=256, win_length=1024,
@@ -396,12 +388,10 @@ class TacotronSTFT(torch.nn.Module):
         self.register_buffer('mel_basis', mel_basis)
 
     def spectral_normalize(self, magnitudes):
-        output = dynamic_range_compression(magnitudes)
-        return output
+        return dynamic_range_compression(magnitudes)
 
     def spectral_de_normalize(self, magnitudes):
-        output = dynamic_range_decompression(magnitudes)
-        return output
+        return dynamic_range_decompression(magnitudes)
 
     def mel_spectrogram(self, y):
         assert(torch.min(y.data) >= -1)

@@ -67,7 +67,7 @@ class AlignmentModule(nn.Module):
             T = feats_lengths[bidx].item()
             N = text_lengths[bidx].item()
 
-            key = str(T) + "," + str(N)
+            key = f"{str(T)},{str(N)}"
             if self.cache_prior and key in self._cache:
                 prob = self._cache[key]
             else:
@@ -155,10 +155,7 @@ def _average_by_duration(ds, xs, text_lengths, feats_lengths):
         d_cumsum = [0] + list(d_cumsum)
         x = xs[b, :t_feats]
         for n, (start, end) in enumerate(zip(d_cumsum[:-1], d_cumsum[1:])):
-            if len(x[start:end]) != 0:
-                xs_avg[b, n] = x[start:end].mean()
-            else:
-                xs_avg[b, n] = 0
+            xs_avg[b, n] = x[start:end].mean() if len(x[start:end]) != 0 else 0
     return xs_avg
 
 

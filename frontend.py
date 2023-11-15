@@ -26,30 +26,30 @@ def split_py(py):
     if py[-1] == 'r':
         suf_r = 'r'
         py = py[:-1]
-    if py == 'zi' or py == 'ci' or py == 'si' or py == 'ri':
+    if py in ['zi', 'ci', 'si', 'ri']:
         sm = py[:1]
         ym = "ii"
-    elif py == 'zhi' or py == 'chi' or py == 'shi':
+    elif py in ['zhi', 'chi', 'shi']:
         sm = py[:2]
         ym = "iii"
-    elif py == 'ya' or py == 'yan' or py == 'yang' or py == 'yao' or py == 'ye' or py == 'yong' or py == 'you':
+    elif py in ['ya', 'yan', 'yang', 'yao', 'ye', 'yong', 'you']:
         sm = ""
-        ym = 'i' + py[1:]
-    elif py == 'yi' or py == 'yin' or py == 'ying':
+        ym = f'i{py[1:]}'
+    elif py in ['yi', 'yin', 'ying']:
         sm = ""
         ym = py[1:]
-    elif py == 'yu' or py == 'yv' or py == 'yuan' or py == 'yvan' or py == 'yue ' or py == 'yve' or py == 'yun' or py == 'yvn':
+    elif py in ['yu', 'yv', 'yuan', 'yvan', 'yue ', 'yve', 'yun', 'yvn']:
         sm = ""
-        ym = 'v' + py[2:]
+        ym = f'v{py[2:]}'
     elif py == 'wu':
         sm = ""
         ym = "u"
     elif py[0] == 'w':
         sm = ""
-        ym = "u" + py[1:]
-    elif len(py) >= 2 and (py[0] == 'j' or py[0] == 'q' or py[0] == 'x') and py[1] == 'u':
+        ym = f"u{py[1:]}"
+    elif len(py) >= 2 and py[0] in ['j', 'q', 'x'] and py[1] == 'u':
         sm = py[0]
-        ym = 'v' + py[2:]
+        ym = f'v{py[2:]}'
     else:
         seg_pos = re.search('a|e|i|o|u|v', py)
         sm = py[:seg_pos.start()]
@@ -82,15 +82,16 @@ def g2p(text):
         
         py =[_py[0] for _py in pinyin(seg, style=Style.TONE3,neutral_tone_with_five=True)]
 
-        if any([has_chinese_punctuation(_py) for _py in py])  or any([has_english_punctuation(_py) for _py in py]):
+        if any(has_chinese_punctuation(_py) for _py in py) or any(
+            has_english_punctuation(_py) for _py in py
+        ):
             res_text.pop()
             res_text.append("sp3")
         else:
             
             py = [" ".join(split_py(_py)) for _py in py]
-            
-            res_text.append(" sp0 ".join(py))
-            res_text.append("sp1")
+
+            res_text.extend((" sp0 ".join(py), "sp1"))
     res_text.pop()
     res_text.append("<sos/eos>")
     return " ".join(res_text)
@@ -99,12 +100,11 @@ if __name__ == "__main__":
     import sys
     from os.path import isfile
     if len(sys.argv) < 2:
-        print("Usage: python %s <text>" % sys.argv[0])
+        print(f"Usage: python {sys.argv[0]} <text>")
         exit()
     text_file = sys.argv[1]
     if isfile(text_file):
-        fp = open(text_file, 'r')
-        for line in fp:
-            phoneme=g2p(line.rstrip())
-            print(phoneme)
-        fp.close()
+        with open(text_file, 'r') as fp:
+            for line in fp:
+                phoneme=g2p(line.rstrip())
+                print(phoneme)

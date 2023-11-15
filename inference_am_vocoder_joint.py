@@ -34,15 +34,14 @@ def get_style_embedding(prompt, tokenizer, style_encoder):
         token_type_ids=token_type_ids,
         attention_mask=attention_mask,
     )
-    style_embedding = output["pooled_output"].cpu().squeeze().numpy()
-    return style_embedding
+    return output["pooled_output"].cpu().squeeze().numpy()
 
 def main(args, config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     root_path = os.path.join(config.output_directory, args.logdir)
     ckpt_path = os.path.join(root_path,  "ckpt")
     files = os.listdir(ckpt_path)
-    
+
     for file in files:
         if args.checkpoint:
             if file != args.checkpoint:
@@ -52,17 +51,14 @@ def main(args, config):
 
         with open(config.model_config_path, 'r') as fin:
             conf = CONFIG.load_cfg(fin)
-        
-     
+
+
         conf.n_vocab = config.n_symbols
         conf.n_speaker = config.speaker_n_labels
 
         style_encoder = StyleEncoder(config)
         model_CKPT = torch.load(config.style_encoder_ckpt, map_location="cpu")
-        model_ckpt = {}
-        for key, value in model_CKPT['model'].items():
-            new_key = key[7:]
-            model_ckpt[new_key] = value
+        model_ckpt = {key[7:]: value for key, value in model_CKPT['model'].items()}
         style_encoder.load_state_dict(model_ckpt)
 
 
@@ -81,12 +77,12 @@ def main(args, config):
 
 
         tokenizer = AutoTokenizer.from_pretrained(config.bert_path)
-        
+
         text_path = args.test_file
 
-   
-        if os.path.exists(root_path + "/test_audio/audio/" +f"{file}/"):
-            r = glob.glob(root_path + "/test_audio/audio/" +f"{file}/*")
+
+        if os.path.exists(f"{root_path}/test_audio/audio/" + f"{file}/"):
+            r = glob.glob(f"{root_path}/test_audio/audio/" + f"{file}/*")
             for j in r:
                 os.remove(j)
         texts = []
@@ -100,7 +96,7 @@ def main(args, config):
                 prompts.append(line[1])
                 texts.append(line[2].split())
                 contents.append(line[3])
-                
+
         for i, (speaker, prompt, text, content) in enumerate(tqdm(zip(speakers, prompts, texts, contents))):
 
             style_embedding = get_style_embedding(prompt, tokenizer, style_encoder)
@@ -111,7 +107,7 @@ def main(args, config):
             speaker = speaker2id[speaker]
 
             text_int = [token2id[ph] for ph in text]
-            
+
             sequence = torch.from_numpy(np.array(text_int)).to(device).long().unsqueeze(0)
             sequence_len = torch.from_numpy(np.array([len(text_int)])).to(device)
             style_embedding = torch.from_numpy(style_embedding).to(device).unsqueeze(0)
@@ -129,9 +125,16 @@ def main(args, config):
                     )
                 audio = infer_output["wav_predictions"].squeeze()* MAX_WAV_VALUE
                 audio = audio.cpu().numpy().astype('int16')
-                if not os.path.exists(root_path + "/test_audio/audio/" +f"{file}/"):
-                    os.makedirs(root_path + "/test_audio/audio/" +f"{file}/", exist_ok=True)
-                sf.write(file=root_path + "/test_audio/audio/" +f"{file}/{i+1}.wav", data=audio, samplerate=config.sampling_rate) #h.sampling_rate
+                if not os.path.exists(
+                    f"{root_path}/test_audio/audio/" + f"{file}/"
+                ):
+                    os.makedirs(f"{root_path}/test_audio/audio/" + f"{file}/", exist_ok=True)
+                sf.write(
+                    file=f"{root_path}/test_audio/audio/"
+                    + f"{file}/{i + 1}.wav",
+                    data=audio,
+                    samplerate=config.sampling_rate,
+                )
 
 
 

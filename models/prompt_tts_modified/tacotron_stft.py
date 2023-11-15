@@ -39,8 +39,7 @@ class ConvNorm(torch.nn.Module):
             self.conv.weight, gain=torch.nn.init.calculate_gain(w_init_gain))
 
     def forward(self, signal):
-        conv_signal = self.conv(signal)
-        return conv_signal
+        return self.conv(signal)
 
 
 class TacotronSTFT(torch.nn.Module):
@@ -61,12 +60,10 @@ class TacotronSTFT(torch.nn.Module):
         self.register_buffer('mel_basis', mel_basis)
 
     def spectral_normalize(self, magnitudes):
-        output = dynamic_range_compression(magnitudes)
-        return output
+        return dynamic_range_compression(magnitudes)
 
     def spectral_de_normalize(self, magnitudes):
-        output = dynamic_range_decompression(magnitudes)
-        return output
+        return dynamic_range_decompression(magnitudes)
 
     def mel_spectrogram(self, y):
 

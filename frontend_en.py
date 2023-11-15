@@ -46,17 +46,14 @@ def preprocess_english(text):
 
     for w in words:
         if w.lower() in lexicon:
-            phones += [
-                "[" + ph + "]" 
-                for ph in lexicon[w.lower()]
-            ]+["engsp1"]
+            phones += ([f"[{ph}]" for ph in lexicon[w.lower()]] + ["engsp1"])
         else:
             phone=g2p(w)
             if not phone:
                 continue
 
             if phone[0].isalnum():
-                phones += ["[" + ph + "]" for ph in phone]
+                phones += [f"[{ph}]" for ph in phone]
             elif phone == " ":
                 continue
             else:
@@ -75,12 +72,11 @@ if __name__ == "__main__":
     import sys
     from os.path import isfile
     if len(sys.argv) < 2:
-        print("Usage: python %s <text>" % sys.argv[0])
+        print(f"Usage: python {sys.argv[0]} <text>")
         exit()
     text_file = sys.argv[1]
     if isfile(text_file):
-        fp = open(text_file, 'r')
-        for line in fp:
-            phoneme=preprocess_english(line.rstrip())
-            print(phoneme)
-        fp.close()
+        with open(text_file, 'r') as fp:
+            for line in fp:
+                phoneme=preprocess_english(line.rstrip())
+                print(phoneme)
